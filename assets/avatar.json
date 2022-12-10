@@ -1,0 +1,7 @@
+{
+	"name": "Cow",
+	"authors": ["Jaezmien Naejara", "winterClover", "Relrels"],
+	"autoScripts": ["cow"],
+
+	"description": "One of Minecraft passive mobs, Cows."
+}

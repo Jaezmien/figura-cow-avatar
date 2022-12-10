@@ -1,0 +1,8 @@
+-- Figura - Cow Model v1.2
+-- Requires: rc12+
+-- Authors:
+-- + Jaezmien Naejara
+-- + winterClover - Based the model on their Customized Pony Models v2
+-- + Rels / Atsuya#7987 - Added armor support
+-- Want the un-minified version? Check it out at https://github.com/Jaezmien/figura-cow-avatar
+

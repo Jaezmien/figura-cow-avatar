@@ -1,0 +1,15 @@
+{
+  "name": "cow-avatar",
+  "description": "Cow Avatar for Figura",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "author": "Jaezmien Naejara",
+  "license": "GPL",
+  "private": true,
+  "dependencies": {
+    "luamin": "^1.0.4"
+  },
+  "scripts": {
+	"start": "node src/index.js"
+  }
+}
