@@ -15,8 +15,8 @@ local UVParts = {
 	head = { "head", "hornl", "hornr" },
 	leg_br = { "leg0" },
 	leg_bl = { "leg1" },
-	leg_fr = { "leg2" },
-	leg_fl = { "leg3" }
+	leg_fr = { "leg2", RIGHT_ARM = { "leg2" } },
+	leg_fl = { "leg3", LEFT_ARM = { "leg3" } }
 }
 local PartsMushroom = {
 	body = "mushrooms",
@@ -338,30 +338,30 @@ local type_infos = {
 	{'Brown Mooshroom', vectors.hexToRGB('#8B684A'), 'brown_mushroom'}
 }
 
-function pings.change_cow_type(t)
+function set_part_uv(part, model, x, y)
+	for k,v in pairs(part) do
+		if type(v) == "table" then
+			set_part_uv(v, model[k], x, y)
+		else
+			model[v]:setUV(x, y)
+		end
+	end
+end
 
+function pings.change_cow_type(t)
 	local current_cow, next_cow= type_infos[t], type_infos[t+1>3 and 1 or t+1]
 	btn_type:title('Change to '..next_cow[1]):color(next_cow[2]):item(next_cow[3])
 
-	for parent,children in pairs(UVParts) do
-		for _,child in ipairs(children) do
-
-			models_model[parent][child]:setUV(0,0.25*(t-1))
-
-		end
-	end
+	set_part_uv( UVParts, models_model, 0, 0.25 * (t-1) )
 
 	local mushroom = (t >= 2)
 	for parent,child in pairs(PartsMushroom) do
-
 		local m = models_model[parent][child]
 		m:setVisible( mushroom )
 		if mushroom then
 			m:setUV((1/8)*(t-2),0)
 		end
-
 	end
-
 end
 pings.change_cow_type(btn_type_curr)
 btn_type:onLeftClick(function()
