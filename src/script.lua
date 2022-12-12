@@ -126,6 +126,7 @@ events.TICK:register(function()
 	if pose == "SLEEPING" then
 		states_move:setState(anim_model.Sleeping)
 	elseif plr:getVehicle() then
+		anim_model.Walking_Arms:speed(0)
 		states_move:setState(anim_model.LayingDown)
 	elseif pose == "SWIMMING" then
 		if plr:isWet() then
