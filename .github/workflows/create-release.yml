@@ -27,7 +27,7 @@ jobs:
             - run: yarn
             - run: yarn start
             - name: Zip ./build/
-              run: cd build && zip -r ../Ccow.zip .
+              run: cd build && zip -r ../Cow.zip .
             - name: Release bundled zip
               uses: svenstaro/upload-release-action@v2
               with:
