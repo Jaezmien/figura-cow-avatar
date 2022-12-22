@@ -1,4 +1,4 @@
--- Figura - Cow Model v1.2
+-- Figura - Cow Model v1.3
 -- Requires: rc12+
 -- Authors:
 -- + Jaezmien Naejara
