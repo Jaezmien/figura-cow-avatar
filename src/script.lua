@@ -7,7 +7,6 @@ local kb = keybinds
 -- + --
 
 local main_page = action_wheel:newPage()
-local show_armor = true
 action_wheel:setPage(main_page)
 
 local UVParts = {
@@ -180,11 +179,12 @@ local armor_parts = {
 	[4] = {models_model.leg_bl.greave, models_model.leg_br.greave, --[[models_model.leg_fl.greave, models_model.leg_fr.greave,]] models_model.body.waist},
 	[3] = {models_model.leg_fl.boot, models_model.leg_fr.boot, models_model.leg_bl.boot, models_model.leg_br.boot}
 } -- udder gets disabled when wearing leggings, btw. aesthetic reasons.
+local btn_armor = main_page:newAction(1)
 local function handle_armor()
 	for armor_part=6, 3, -1 do  -- loop from helmet to boots
 		local item = player:getItem(armor_part).id
 
-		if item == "minecraft:air" or not show_armor then 
+		if item == "minecraft:air" or not btn_armor:isToggled() then 
 			for k,v in ipairs(armor_parts[armor_part]) do v:setVisible(false) end 
 		else
 			local found_armor
@@ -218,18 +218,17 @@ local function handle_armor()
 				models_model.head.helmet:setVisible(true)
 			elseif armor_part == 5 and item == "minecraft:elytra" then
 				-- todo: actual elytra code
-				for k,v in ipairs(armor_parts[armor_part]) do v:setVisible(false) end 
+				for _,v in ipairs(armor_parts[5]) do v:setVisible(false) end
 			end	
 		end
 	end
 end
 
-local btn_armor = main_page:newAction(1)
-btn_armor:item('barrier'):title('Disable armor rendering')
-btn_armor:toggleItem('netherite_chestplate'):toggleTitle('Enable armor rendering')
-btn_armor:onToggle(function() show_armor = false end)
-btn_armor:onUntoggle(function() show_armor = true end)
-btn_armor:toggled( not show_armor )
+btn_armor:item('netherite_chestplate'):title('Enable armor rendering')
+btn_armor:toggleItem('barrier'):toggleTitle('Disable armor rendering')
+btn_armor:onToggle(function() btn_armor:toggled(true) end)
+btn_armor:onUntoggle(function() btn_armor:toggled(false) end)
+btn_armor:toggled( true )
 
 local function show_arms(v)
 	models_model.leg_fl.LEFT_ARM:setVisible(v)
@@ -254,7 +253,7 @@ events.RENDER:register(function(tick, source)
 	end
 
 	handle_armor()
-	local show_udder = player:getItem(4).tag == nil or not show_armor
+	local show_udder = player:getItem(4).tag == nil or not btn_armor:isToggled()
 	models_model.body.udder:setVisible(show_udder)
 
 	local foreleg_left, foreleg_right = models_model.leg_fl, models_model.leg_fr
