@@ -6,9 +6,9 @@ local kb = keybinds
 
 -- + --
 
-local mainPage = action_wheel:newPage()
-local showArmor = true
-action_wheel:setPage(mainPage)
+local main_page = action_wheel:newPage()
+local show_armor = true
+action_wheel:setPage(main_page)
 
 local UVParts = {
 	body = { "body", "udder" },
@@ -53,7 +53,7 @@ end
 Keys.interact.onPress = function() pings.interact() end
 
 local is_legs_busy = false
-local btn_dance = mainPage:newAction(2)
+local btn_dance = main_page:newAction(2)
 
 local is_dancing, polish_sound = false, 'polish'
 function pings.start_dance(pos)
@@ -71,11 +71,11 @@ events.TICK:register(function()
 	local plr = player
     local vel, radRot, pose = plr:getVelocity(), math.rad(-plr:getBodyYaw()), plr:getPose()
 	
-    local localVel = vec( 
+    local local_vel = vec( 
 		math.cos(radRot) * vel.x + math.sin(radRot) * vel.z,
     	math.sin(radRot) * vel.x + math.cos(radRot) * vel.z 
     )
-    local distance_travel = localVel:length()
+    local distance_travel = local_vel:length()
 	
 	if is_dancing and (distance_travel>0.03 or math.abs(vel.y)>0.03) then 
 		pings.end_dance()
@@ -84,16 +84,16 @@ events.TICK:register(function()
 
 	local states_move, states_arms = States.Move, States.Arms
 
-	local activeItem = plr:getActiveItem().id	
+	local active_item = plr:getActiveItem().id	
 	local minecraft_tag = "minecraft:"
 
-	if activeItem ~= (minecraft_tag .. "air") then
+	if active_item ~= (minecraft_tag .. "air") then
 		if plr:getActiveHand() == "MAIN_HAND" then			
 			local use_action, is_left_handed = plr:getActiveItem():getUseAction(), plr:isLeftHanded()
 
-			if activeItem == (minecraft_tag .. "bow") then
+			if active_item == (minecraft_tag .. "bow") then
 				states_arms:setState(anim_model.Bow)
-			elseif activeItem == (minecraft_tag .. "trident") then
+			elseif active_item == (minecraft_tag .. "trident") then
 				states_arms:setState(is_left_handed and anim_model.Trident_L or anim_model.Trident_R)
 			elseif use_action == "EAT" or use_action == "DRINK" then
 				states_arms:setState(is_left_handed and anim_model.Eating_L or anim_model.Eating_R)
@@ -108,7 +108,7 @@ events.TICK:register(function()
 		is_legs_busy = false
 	end
 
-	local fast_vel = localVel.y*12
+	local fast_vel = local_vel.y*12
 	if pose == "SLEEPING" then
 		states_move:setState(anim_model.Sleeping)
 	elseif plr:getVehicle() then
@@ -153,7 +153,7 @@ events.TICK:register(function()
 			models_model:setPos(0, 0, 0)
 
 			if plr:isSprinting() then
-				local fast_vel = localVel.y * 16
+				local fast_vel = local_vel.y * 16
 				anim_model.Walking_Arms:speed(fast_vel)
 				anim_model.Walking:speed(fast_vel)
 				if not is_legs_busy then states_arms:setState(anim_model.Walking_Arms) end
@@ -173,8 +173,8 @@ events.TICK:register(function()
 end)
 
 local armor_part_suffix = { [6] = 'helmet', [5] = 'chestplate', [4] = 'leggings', [3] = 'boots' }
-local armorTypes = { "leather", "chain", "gold", "iron", "diamond", "netherite" }
-local armorParts = {
+local armor_types = { "leather", "chain", "gold", "iron", "diamond", "netherite" }
+local armor_parts = {
 	[6] = {models_model.head.helmet},
 	[5] = {models_model.body.cplate, models_model.leg_fl.shoulder, models_model.leg_fr.shoulder},
 	[4] = {models_model.leg_bl.greave, models_model.leg_br.greave, --[[models_model.leg_fl.greave, models_model.leg_fr.greave,]] models_model.body.waist},
@@ -185,19 +185,19 @@ local function handle_armor()
 		local item = player:getItem(armor_part).id
 
 		if item == "minecraft:air" then 
-			for k,v in ipairs(armorParts[armor_part]) do v:setVisible(false) end 
+			for k,v in ipairs(armor_parts[armor_part]) do v:setVisible(false) end 
 		else
 			local found_armor
 
 			for armor_type=1, 6, 1 do -- looping through all armor types
-				if item == ("minecraft:" .. armorTypes[armor_type] .. "_" .. armor_part_suffix[armor_part]) then
+				if item == ("minecraft:" .. armor_types[armor_type] .. "_" .. armor_part_suffix[armor_part]) then
 					found_armor = armor_type
 					break
 				end
 			end
 
 			if found_armor then
-				for k,v in ipairs(armorParts[armor_part]) do
+				for k,v in ipairs(armor_parts[armor_part]) do
 	
 					v:setVisible(true)
 
@@ -218,7 +218,7 @@ local function handle_armor()
 				models_model.head.helmet:setVisible(true)
 			elseif armor_part == 5 and item == "minecraft:elytra" then
 				-- todo: actual elytra code
-				for k,v in ipairs(armorParts[armor_part]) do v:setVisible(false) end 
+				for k,v in ipairs(armor_parts[armor_part]) do v:setVisible(false) end 
 			end	
 		end
 	end
@@ -229,7 +229,7 @@ local function show_arms(v)
 	models_model.leg_fr.RIGHT_ARM:setVisible(v)
 end
 
-local btn_pov = mainPage:newAction(3)
+local btn_pov = main_page:newAction(3)
 
 events.RENDER:register(function(tick, source)
 	local orig_head_rot = vanilla_model.HEAD:getOriginRot()
@@ -271,8 +271,8 @@ end)
 
 -- + Sounds + --
 
-local lastSeenHealth
-local healthDmgDelay = 0
+local last_seen_health
+local health_damage_delay = 0
 
 function pings.cow_hurt(pos, pitch)
 	sounds:playSound("entity.cow.hurt", pos, 1, pitch, false)
@@ -284,7 +284,7 @@ function pings.cow_moo(pos)
 	sounds:playSound("entity.cow.ambient", pos, 1, 1, false)
 end
 
-randomTime = 50 + math.random() * 100
+random_time = 50 + math.random() * 100
 
 events.TICK:register(function()
 	local pos = player:getPos()
@@ -292,16 +292,16 @@ events.TICK:register(function()
 
 	-- Player is hurt
 	if health > 0 then
-		if health < lastSeenHealth then
-			if healthDmgDelay == 0 then
+		if health < last_seen_health then
+			if health_damage_delay == 0 then
 				pings.cow_hurt(pos,0.8+math.random(0,4)*0.1)
-				healthDmgDelay = 5
+				health_damage_delay = 5
 			end
-			randomTime = 250 + math.random() * 500
+			random_time = 250 + math.random() * 500
 		end
 
-		if healthDmgDelay > 0 then healthDmgDelay = healthDmgDelay - 1 end
-		lastSeenHealth = health
+		if health_damage_delay > 0 then health_damage_delay = health_damage_delay - 1 end
+		last_seen_health = health
 	end
 
 	-- Player dies
@@ -310,21 +310,21 @@ events.TICK:register(function()
 	end
 
 	-- Random moo's
-	if randomTime>0 then
-		randomTime=randomTime-1
+	if random_time>0 then
+		random_time=random_time-1
 
-		if randomTime==0 then 
+		if random_time==0 then 
 			pings.cow_moo(pos) 
-			randomTime = 250 + math.random() * 500 
+			random_time = 250 + math.random() * 500 
 		end
 	end
 end)
 
-local btn_moo = mainPage:newAction(1)
+local btn_moo = main_page:newAction(1)
 btn_moo:color(vectors.hexToRGB("#413625")):item('note_block'):title('Make noise')
-btn_moo:onLeftClick(function()randomTime=1 end)
+btn_moo:onLeftClick(function() random_time = 1 end)
 
-local btn_type = mainPage:newAction(4)
+local btn_type = main_page:newAction(4)
 local btn_type_curr = 1
 local type_infos = {
 	{'Cow',             vectors.hexToRGB('#413424'), 'wheat'},
@@ -390,5 +390,5 @@ events.ENTITY_INIT:register(function()
 	nameplate_entity:setText("")
 	nameplate_entity.visible = false
 
-	lastSeenHealth = player:getHealth()
+	last_seen_health = player:getHealth()
 end)
