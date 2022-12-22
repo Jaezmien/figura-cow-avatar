@@ -184,7 +184,7 @@ local function handle_armor()
 	for armor_part=6, 3, -1 do  -- loop from helmet to boots
 		local item = player:getItem(armor_part).id
 
-		if item == "minecraft:air" then 
+		if item == "minecraft:air" or not show_armor then 
 			for k,v in ipairs(armor_parts[armor_part]) do v:setVisible(false) end 
 		else
 			local found_armor
@@ -224,13 +224,19 @@ local function handle_armor()
 	end
 end
 
+local btn_armor = main_page:newAction(1)
+btn_armor:item('barrier'):title('Disable armor rendering')
+btn_armor:toggleItem('netherite_chestplate'):toggleTitle('Enable armor rendering')
+btn_armor:onToggle(function() show_armor = false end)
+btn_armor:onUntoggle(function() show_armor = true end)
+btn_armor:toggled( not show_armor )
+
 local function show_arms(v)
 	models_model.leg_fl.LEFT_ARM:setVisible(v)
 	models_model.leg_fr.RIGHT_ARM:setVisible(v)
 end
 
 local btn_pov = main_page:newAction(3)
-
 events.RENDER:register(function(tick, source)
 	local orig_head_rot = vanilla_model.HEAD:getOriginRot()
 	models_model.head:setRot(orig_head_rot)
@@ -248,7 +254,7 @@ events.RENDER:register(function(tick, source)
 	end
 
 	handle_armor()
-	local show_udder = player:getItem(4).tag == nil
+	local show_udder = player:getItem(4).tag == nil or not show_armor
 	models_model.body.udder:setVisible(show_udder)
 
 	local foreleg_left, foreleg_right = models_model.leg_fl, models_model.leg_fr
@@ -268,6 +274,11 @@ events.RENDER:register(function(tick, source)
 
 	renderer:setShadowRadius(0.7)	
 end)
+btn_pov:title('Set POV to model height'):toggleTitle('Set POV to normal height')
+btn_pov:item('player_head{SkullOwner:"MHF_Cow"}'):toggleItem('player_head')
+btn_pov:color(vectors.hexToRGB('#413424'))
+btn_pov:onToggle(function() btn_pov:toggled(true) end)
+btn_pov:onUntoggle(function() btn_pov:toggled(false) end)
 
 -- + Sounds + --
 
@@ -320,7 +331,7 @@ events.TICK:register(function()
 	end
 end)
 
-local btn_moo = main_page:newAction(1)
+local btn_moo = main_page:newAction(5)
 btn_moo:color(vectors.hexToRGB("#413625")):item('note_block'):title('Make noise')
 btn_moo:onLeftClick(function() random_time = 1 end)
 
@@ -370,12 +381,6 @@ btn_dance:onLeftClick(function()
 	if is_dancing then pings.start_dance( player:getPos() )
 	else pings.end_dance() end
 end)
-
-btn_pov:title('Set POV to model height'):toggleTitle('Set POV to normal height')
-btn_pov:item('player_head{SkullOwner:"MHF_Cow"}'):toggleItem('player_head')
-btn_pov:color(vectors.hexToRGB('#413424'))
-btn_pov:onToggle(function() btn_pov:toggled(true) end)
-btn_pov:onUntoggle(function() btn_pov:toggled(false) end)
 
 -- + Setup + --
 
