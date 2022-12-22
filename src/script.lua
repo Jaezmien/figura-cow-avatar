@@ -22,20 +22,6 @@ local PartsMushroom = {
 	body = "mushrooms",
 	head = "mushroom_front"
 }
-local armorTypes = {
-	"leather",
-	"chain",
-	"gold",
-	"iron",
-	"diamond",
-	"netherite"
-}
-
-local armorParts = {} -- udder gets disabled when wearing leggings, btw. aesthetic reasons.
-armorParts[3] = {models_model.leg_fl.boot, models_model.leg_fr.boot, models_model.leg_bl.boot, models_model.leg_br.boot}
-armorParts[4] = {models_model.leg_bl.greave, models_model.leg_br.greave, --[[models_model.leg_fl.greave, models_model.leg_fr.greave,]] models_model.body.waist}
-armorParts[5] = {models_model.body.cplate, models_model.leg_fl.shoulder, models_model.leg_fr.shoulder}
-armorParts[6] = {models_model.head.helmet}
 
 local GNA = require("libs.GNanim")
 local States = { Move = GNA.newStateMachine(), Arms = GNA.newStateMachine(), Attack = GNA.newStateMachine(), Dance = GNA.newStateMachine() }
@@ -186,47 +172,54 @@ events.TICK:register(function()
 	end
 end)
 
+local armor_part_suffix = { [6] = 'helmet', [5] = 'chestplate', [4] = 'leggings', [3] = 'boots' }
+local armorTypes = { "leather", "chain", "gold", "iron", "diamond", "netherite" }
+local armorParts = {
+	[6] = {models_model.head.helmet},
+	[5] = {models_model.body.cplate, models_model.leg_fl.shoulder, models_model.leg_fr.shoulder},
+	[4] = {models_model.leg_bl.greave, models_model.leg_br.greave, --[[models_model.leg_fl.greave, models_model.leg_fr.greave,]] models_model.body.waist},
+	[3] = {models_model.leg_fl.boot, models_model.leg_fr.boot, models_model.leg_bl.boot, models_model.leg_br.boot}
+} -- udder gets disabled when wearing leggings, btw. aesthetic reasons.
 local function handle_armor()
-	for ia=6, 3, -1 do  --6, 5, 4, 3
-
-		local item = player:getItem(ia).id
+	for armor_part=6, 3, -1 do  -- loop from helmet to boots
+		local item = player:getItem(armor_part).id
 
 		if item == "minecraft:air" then 
-
-			for k,v in ipairs(armorParts[ia]) do v:setVisible(false) end 
-
+			for k,v in ipairs(armorParts[armor_part]) do v:setVisible(false) end 
 		else
+			local found_armor
 
-			for it=1, 6, 1 do -- looping through all armor types
-				if string.find(item, armorTypes[it]) ~= nil then
-	
-					for k,v in ipairs(armorParts[ia]) do
-	
-						v:setVisible(true)
-	
-						if ia>4 then -- helmet, chestplate
-							v:setUVPixels(
-								math.floor(it/4) * 48,
-								40 * ((it-1)%3)
-							)
-						else  -- leggings, boots
-							v:setUVPixels(
-								0,
-								it*16 - 16
-							)
-						end
-					end
-	
-					if item == "minecraft:turtle_helmet" then
-						models_model.head.helmet:setUVPixels(80, -24)
-						models_model.head.helmet:setVisible(true)
-					end
-	
+			for armor_type=1, 6, 1 do -- looping through all armor types
+				if item == ("minecraft:" .. armorTypes[armor_type] .. "_" .. armor_part_suffix[armor_part]) then
+					found_armor = armor_type
 					break
-	
-				end 	
+				end
 			end
 
+			if found_armor then
+				for k,v in ipairs(armorParts[armor_part]) do
+	
+					v:setVisible(true)
+
+					if armor_part>4 then -- helmet, chestplate
+						v:setUVPixels(
+							math.floor(found_armor/4) * 48,
+							40 * ((found_armor-1)%3)
+						)
+					else  -- leggings, boots
+						v:setUVPixels(
+							0,
+							found_armor*16 - 16
+						)
+					end
+				end
+			elseif armor_part == 6 and item == "minecraft:turtle_helmet" then
+				models_model.head.helmet:setUVPixels(80, -24)
+				models_model.head.helmet:setVisible(true)
+			elseif armor_part == 5 and item == "minecraft:elytra" then
+				-- todo: actual elytra code
+				for k,v in ipairs(armorParts[armor_part]) do v:setVisible(false) end 
+			end	
 		end
 	end
 end
