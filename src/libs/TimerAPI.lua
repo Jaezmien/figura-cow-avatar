@@ -1,3 +1,157 @@
--- TimerAPI.lua
--- By: KitCat962 + GNamimates
-local a;pcall(function()a=require("EventsAPI")end)local b={TICK={},RENDER={},WORLD_TICK={},WORLD_RENDER={}}local c={}c.__index=c;function c:new(d,e,f,g,h,i)local j={time=e,duration=e,paused=not g,onFinish=h,onProcess=i,loop=not not f}if a then j.onFinishEvent=a:new()j.onProcessEvent=a:new()end;setmetatable(j,self)if b[d]then table.insert(b[d],j)else error("invalid type",2)end;return j end;function c:remove()self.removed=true end;function c:pause()self.paused=true end;function c:resume()self.paused=false end;function c:stop()self.paused=true;self.time=self.duration end;function c:play()self.paused=false;self.time=self.duration end;do local function k(l,m)for n=1,#l do local j=l[n]if j then if j.removed then table.remove(l,n)n=n-1;goto o end;if j.time<=0 then j.time=j.duration;j.paused=not j.loop;if j.onFinish then j.onFinish()end;if a then j.onFinishEvent:invoke()end end;if not j.paused then j.time=math.max(j.time-m,0)local p=(j.duration-j.time)/j.duration,m;if j.onProcess then j.onProcess(p)end;if a then j.onProcessEvent:invoke(p)end end end::o::end end;local q=events;q.TICK:register(function()k(b.TICK,1)end)q.WORLD_TICK:register(function()k(b.WORLD_TICK,1)end)local function r()return client:getSystemTime()end;local s=r()local t=r()q.RENDER:register(function()local m=(r()-s)/1000;s=r()k(b.RENDER,m)end)q.WORLD_RENDER:register(function()local m=(r()-t)/1000;t=r()k(b.WORLD_RENDER,m)end)end;return c
+--╔══════════════════════════════════════════════════════════════════════════╗--
+--║                                                                          ║----[[--=======================================================]=]
+--║  ██  ██  ██████  ██████   █████    ██    ██████   ████    ████    ████   ║--|   _______   __                _                 __           |
+--║  ██ ██     ██      ██    ██       ████     ██    ██  ██  ██          ██  ║--|  / ____/ | / /___ _____ ___  (_)___ ___  ____ _/ /____  _____|
+--║  ████      ██      ██    ██       █  █     ██     █████  █████    ████   ║--| / / __/  |/ / __ `/ __ `__ \/ / __ `__ \/ __ `/ __/ _ \/ ___/|
+--║  ██ ██     ██      ██    ██      ██████    ██        ██  ██  ██  ██      ║--|/ /_/ / /|  / /_/ / / / / / / / / / / / / /_/ / /_/  __(__  ) |
+--║  ██  ██  ██████    ██     █████  ██  ██    ██     ████    ████    ████   ║--|\____/_/ |_/\__,_/_/ /_/ /_/_/_/ /_/ /_/\__,_/\__/\___/____/  |
+--║                                                                          ║--[-[===========================================================]]
+--╚══════════════════════════════════════════════════════════════════════════╝--
+---@type Event
+local EventsAPI
+pcall(function()
+  EventsAPI = require("EventsAPI")
+end)
+
+---@alias TimerType
+---| "TICK"
+---| "WORLD_TICK"
+---| "RENDER"
+---| "WORLD_RENDER"
+
+local timerContainers = {
+  ---@type Timer[]
+  TICK = {},
+  ---@type Timer[]
+  RENDER = {},
+  ---@type Timer[]
+  WORLD_TICK = {},
+  ---@type Timer[]
+  WORLD_RENDER = {},
+}
+
+---@class Timer
+---@field time number
+---@field duration number
+---@field onFinish function?
+---@field onProcess fun(progress:number,delta:number)?
+---@field onFinishEvent Event
+---@field onProcessEvent Event
+---@field paused boolean
+---@field removed boolean
+---@field loop boolean
+local Timer = {}
+Timer.__index = Timer
+
+---Creates a new timer instance
+---@param type TimerType
+---@param duration number
+---@param onFinish function|nil?
+---@param onProcess fun(progress:number,delta:number)|nil?
+---@param loop boolean|nil
+---@param start boolean
+---@return Timer
+function Timer:new(type, duration, loop, start, onFinish, onProcess)
+  ---@type Timer
+  local timer = {
+    time = duration,
+    duration = duration,
+    paused = not start,
+    onFinish = onFinish,
+    onProcess = onProcess,
+  }
+  timer.loop = loop
+  if EventsAPI then
+    timer.onFinishEvent = EventsAPI:new()
+    timer.onProcessEvent = EventsAPI:new()
+  end
+  setmetatable(timer, self)
+  if timerContainers[type] then
+    table.insert(timerContainers[type], timer)
+  else
+    error("invalid type", 2)
+  end
+  return timer
+end
+
+function Timer:remove()
+  self.removed = true
+end
+
+function Timer:pause()
+  self.paused = true
+end
+
+function Timer:resume()
+  self.paused = false
+end
+
+function Timer:stop()
+  self.paused = true
+  self.time = self.duration
+end
+
+function Timer:play()
+  self.paused = false
+  self.time = self.duration
+end
+
+do
+  local function updateTimers(timerArray, delta)
+    for i = 1, #timerArray do
+      ---@type Timer
+      local timer = timerArray[i]
+      if timer then
+        if timer.removed then
+          table.remove(timerArray, i)
+          i = i - 1
+          goto continue
+        end
+        if timer.time <= 0 then
+          timer.time = timer.duration
+          timer.paused = not timer.loop
+          if timer.onFinish then
+            timer.onFinish()
+          end
+          if EventsAPI then
+            timer.onFinishEvent:invoke()
+          end
+        end
+        if not timer.paused then
+          timer.time = math.max(timer.time - delta,0)
+          if timer.onProcess then
+            timer.onProcess((timer.duration - timer.time) / timer.duration, delta)
+          end
+          if EventsAPI then
+            timer.onProcessEvent:invoke((timer.duration - timer.time) / timer.duration, delta)
+          end
+        end
+      end
+      ::continue::
+    end
+  end
+
+  events.TICK:register(function()
+    updateTimers(timerContainers.TICK, 1)
+  end)
+
+  events.WORLD_TICK:register(function()
+    updateTimers(timerContainers.WORLD_TICK, 1)
+  end)
+
+  local lastRenderTime = client:getSystemTime()
+  events.RENDER:register(function()
+    local delta = (client:getSystemTime() - lastRenderTime) / 1000
+    lastRenderTime = client:getSystemTime()
+    updateTimers(timerContainers.RENDER, delta)
+  end)
+
+  local lastWorldRenderTime = client:getSystemTime()
+  events.WORLD_RENDER:register(function()
+    local delta = (client:getSystemTime() - lastWorldRenderTime) / 1000
+    lastWorldRenderTime = client:getSystemTime()
+    updateTimers(timerContainers.WORLD_RENDER, delta)
+  end)
+end
+
+return Timer

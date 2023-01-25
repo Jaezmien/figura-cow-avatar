@@ -26,18 +26,18 @@ function minify_script(p, header) {
 minify_script(
 	'libs/GNanim.lua',
 	`-- GNanim.lua
--- By: GNamimates\n`
+-- By: GNamimates, slightly modified for rc12 support\n`
 );
 
 minify_script(
 	'libs/TimerAPI.lua',
 	`-- TimerAPI.lua
-	-- By: KitCat962 + GNamimates\n`
+-- By: KitCat962 + GNamimates\n`
 );
 
 minify_script(
 	'cow.lua',
-	`-- Figura - Cow Model v1.4
+	`-- Figura - Cow Model v1.4.1
 -- Requires: rc12+
 -- Authors:
 -- + Jaezmien Naejara

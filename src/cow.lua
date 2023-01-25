@@ -392,7 +392,11 @@ events.ENTITY_INIT:register(function()
 	local nameplate_entity = nameplate.ENTITY
 	nameplate_entity:setScale(0, 0, 0)
 	nameplate_entity:setText("")
-	nameplate_entity.visible = false
+	if type(nameplate_entity.visible) == 'function' then
+		nameplate_entity:visible(false)
+	else
+		nameplate_entity.visible = false
+	end
 
 	last_seen_health = player:getHealth()
 end)

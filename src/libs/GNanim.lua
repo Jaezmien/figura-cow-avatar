@@ -1,3 +1,247 @@
--- GNanim.lua
--- By: GNamimates
-local a={remote_view=true}local b={}local c={}local d=require("libs.TimerAPI")if not d then print("Missing Dependency: TimerAPI")end;local e=getmetatable;do local f=0;for g,h in pairs(animations)do for i,j in pairs(h)do f=f+1;local k=e(j)k.id=f end end end;function b.getAnimID(l)return e(l).id end;local m={}m.__index=m;function m:addAnimations(...)for n,i in pairs{...}do table.insert(self.animations,i)end;return self end;function m:play()local i=self.animations;if#i>0 then if self.type=="RANDOM"then self.currentPlaying=math.random(1,#i)end;if self.type=="ROUND_ROBBIN"then self.currentPlaying=self.currentPlaying%#i+1 end;local o=i[self.currentPlaying]if o then o:stop()end;if self.type~="ALL"then o:play()else for n,h in pairs(i)do h:play()end end end;return self end;function m:stop()local i=self.animations;if#i>0 then if self.type~="ALL"then i[self.currentPlaying]:stop()else for n,h in pairs(i)do h:stop()end end end end;function m:speed(p)local i=self.animations;if#i>0 then if self.type~="ALL"then i[self.currentPlaying]:speed(p)else for n,h in pairs(i)do h:speed(p)end end end end;function m:getLoop()local o=self.animations[self.currentPlaying]if o then o:getLoop()end end;function m:blend(q)local i=self.animations;if self.type~="ALL"then i[self.currentPlaying]:blend(q)else for n,h in pairs(i)do h:blend(q)end end;return self end;function m:getPlayState(q)local o=self.animations[self.currentPlaying]if o then o:getPlayState(q)end;return self end;function m:setGroupType(r)self.type=r;return self end;function b.newAnimationGroup()local s={animations={},type="ROUND_ROBBIN",currentPlaying=1}setmetatable(s,m)return s end;local t={}local u={}u.__index=u;function u:setState(v,w)if self.state~=v or w then if not self.timer.paused then if self.lastState then self.lastState:stop()end;if self.state then self.state:stop()end end;self.lastState=self.state;self.state=v;if self.onChange then self.onChange(self.state,self.lastState)end;if self.state and self.state.blendTime then self.timer.duration=self.state.blendTime else self.timer.duration=self.blendTime end;if self.blendTime~=0 and self.lastState~=self.state then if self.state then self.state:stop()self.state:play()end;self.timer:play()else if self.lastState then self.lastState:stop()end;if self.state then self.state:play()end end end end;function b.newStateMachine()local x={state=nil,lastState=nil,override=false,blendTime=0.1,overallOpacity=1}x.timer=d:new("RENDER",x.blendTime,false,false,function()if x.state then x.state:blend(1)end;if x.lastState then x.lastState:blend(0)x.lastState:stop()end end,function(y,z)if x.state then x.state:blend(y)end;if x.lastState then x.lastState:blend(1-y)end end)setmetatable(x,u)table.insert(t,x)return x end;return b
+--[[--=======================================================]=]
+|   _______   __                _                 __           |
+|  / ____/ | / /___ _____ ___  (_)___ ___  ____ _/ /____  _____|
+| / / __/  |/ / __ `/ __ `__ \/ / __ `__ \/ __ `/ __/ _ \/ ___/|
+|/ /_/ / /|  / /_/ / / / / / / / / / / / / /_/ / /_/  __(__  ) |
+|\____/_/ |_/\__,_/_/ /_/ /_/_/_/ /_/ /_/\__,_/\__/\___/____/  |
+[-[===========================================================]]
+-- >====================[ CONFIG ]====================<--
+local CONFIG = {
+    remote_view = true
+}
+local animations = type(animations) == 'table' and animations or animations:getAnimations()
+
+local GN = {}
+-- >====================[ DEPENDENCIES ]====================<--
+local T = require("libs.TimerAPI")
+if not T then
+    print("Missing Dependency: TimerAPI")
+end
+-- >====================[ Animation Indexing ]====================<--
+do
+    local c = 0
+
+	local function index(v)
+		c = c + 1
+		getmetatable(v).id = c
+	end
+
+    for m, value in pairs(animations) do
+        if type(value) == 'table' then
+            for a, v in pairs(value) do
+                index(v)
+            end
+        else
+			index(value)
+        end
+    end
+end
+
+function GN.getAnimID(animation)
+    return getmetatable(animation).id
+end
+-- >====================[ Animation Group ]====================<--
+---@alias AnimationGroupType
+---| "RANDOM"
+---| "ROUND_ROBBIN"
+---| "ALL"
+
+---@class AnimationGroup
+---@field animations table
+---@field type AnimationGroupType
+---@field currentPlaying integer
+local AnimationGroup = {}
+AnimationGroup.__index = AnimationGroup
+
+function AnimationGroup:addAnimations(...)
+    for _, a in pairs {...} do
+        table.insert(self.animations, a)
+    end
+    return self
+end
+
+function AnimationGroup:play()
+    if #self.animations > 0 then
+        if self.type == "RANDOM" then
+            self.currentPlaying = math.random(1, #self.animations)
+        end
+        if self.type == "ROUND_ROBBIN" then
+            self.currentPlaying = self.currentPlaying % #self.animations + 1
+        end
+        if self.animations[self.currentPlaying] then
+            self.animations[self.currentPlaying]:stop()
+        end
+        if self.type ~= "ALL" then
+            self.animations[self.currentPlaying]:play()
+        else
+            for key, value in pairs(self.animations) do
+                value:play()
+            end
+        end
+    end
+    return self
+end
+
+function AnimationGroup:stop()
+    if #self.animations > 0 then
+        if self.type ~= "ALL" then
+            self.animations[self.currentPlaying]:stop()
+        else
+            for key, value in pairs(self.animations) do
+                value:stop()
+            end
+        end
+    end
+end
+
+function AnimationGroup:speed(multiplier)
+    if #self.animations > 0 then
+        if self.type ~= "ALL" then
+            self.animations[self.currentPlaying]:speed(multiplier)
+        else
+            for key, value in pairs(self.animations) do
+                value:speed(multiplier)
+            end
+        end
+    end
+end
+
+function AnimationGroup:getLoop()
+    if self.animations[self.currentPlaying] then
+        self.animations[self.currentPlaying]:getLoop()
+    end
+end
+
+function AnimationGroup:blend(weight)
+    if self.type ~= "ALL" then
+        self.animations[self.currentPlaying]:blend(weight)
+    else
+        for key, value in pairs(self.animations) do
+            value:blend(weight)
+        end
+    end
+    return self
+end
+
+function AnimationGroup:getPlayState(weight)
+    if self.animations[self.currentPlaying] then
+        self.animations[self.currentPlaying]:getPlayState(weight)
+    end
+    return self
+end
+
+---@param type AnimationGroupType
+---@return AnimationGroup
+function AnimationGroup:setGroupType(type)
+    self.type = type
+    return self
+end
+
+---@return AnimationGroup
+function GN.newAnimationGroup()
+    ---@type AnimationGroup
+    local package = {
+        animations = {},
+        type = "ROUND_ROBBIN",
+        currentPlaying = 1
+    }
+    setmetatable(package, AnimationGroup)
+    return package
+end
+
+-- >====================[ State Machine ]====================<--
+local stateMachines = {}
+
+---@class StateMachine
+---@field state animations|AnimationGroup|nil
+---@field blendTime number
+---@field lastState animations|AnimationGroup|nil
+---@field override boolean
+---@field timer Timer
+---@field onChange function
+local StateMachine = {}
+StateMachine.__index = StateMachine
+
+---Sets the current state of the State Machine.
+---@param animaiton animations|AnimationGroup|nil
+---@param forced boolean|nil
+function StateMachine:setState(animaiton, forced)
+    if self.state ~= animaiton or forced then
+        -- self.state:override(self.override)
+        if animaiton then
+            -- animaiton:override(self.override)
+            -- if animaiton:getLoop() == "ONCE" then
+            --   local slotID = #watching+1
+            --   watching[slotID] = self
+            --   self.watchingSlotID = slotID
+            -- end
+        end
+        if not self.timer.paused then
+            if self.lastState then
+                self.lastState:stop()
+            end
+            if self.state then
+                self.state:stop()
+            end
+        end
+        self.lastState = self.state
+        self.state = animaiton
+        if self.onChange then
+            self.onChange(self.state, self.lastState)
+        end
+        if self.state and self.state.blendTime then
+            self.timer.duration = self.state.blendTime
+        else
+            self.timer.duration = self.blendTime
+        end
+
+        if self.blendTime ~= 0 and self.lastState ~= self.state then
+            if self.state then
+                self.state:stop()
+                self.state:play()
+            end
+            self.timer:play()
+        else
+            if self.lastState then
+                self.lastState:stop()
+            end
+            if self.state then
+                self.state:play()
+            end
+        end
+    end
+end
+
+---Creates a State Machine
+---@return StateMachine
+function GN.newStateMachine()
+    ---@type StateMachine
+    local package = {
+        state = nil,
+        lastState = nil,
+        override = false,
+        blendTime = 0.1,
+        overallOpacity = 1
+    }
+    package.timer = T:new("RENDER", package.blendTime, false, false, function()
+        if package.state then
+            package.state:blend(1)
+        end
+        if package.lastState then
+            package.lastState:blend(0)
+            package.lastState:stop()
+        end
+    end, function(progress, delta)
+        if package.state then
+            package.state:blend(progress)
+        end
+        if package.lastState then
+            package.lastState:blend(1 - progress)
+        end
+    end)
+    setmetatable(package, StateMachine)
+    table.insert(stateMachines, package)
+    return package
+end
+
+return GN
