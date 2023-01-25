@@ -26,7 +26,7 @@ function minify_script(p, header) {
 minify_script(
 	'libs/GNanim.lua',
 	`-- GNanim.lua
--- By: GNamimates, slightly modified for rc12 support\n`
+-- By: GNamimates, slightly modified for rc13 support\n`
 );
 
 minify_script(
