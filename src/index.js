@@ -1,21 +1,47 @@
-const fs = require('fs')
-const path = require('path')
-const luamin = require('luamin')
+const fs = require('fs');
+const path = require('path');
+const luamin = require('luamin');
 
-const ROOT = path.join(__dirname, '../')
+const ROOT = path.join(__dirname, '../');
+const BUILD_DIR = path.join(ROOT, 'build');
 
-const header = fs.readFileSync(path.join(ROOT, 'src/header.txt'), "utf-8")
-const script = fs.readFileSync(path.join(ROOT, 'src/script.lua'), "utf-8")
+function mkdir(p) {
+	if (!fs.existsSync(p)) fs.mkdirSync(p);
+}
 
-const BUILD_DIR = path.join(ROOT, 'build')
-if( fs.existsSync(BUILD_DIR) )
-	fs.rmSync(BUILD_DIR, { recursive: true })
-fs.mkdirSync(BUILD_DIR)
+if (fs.existsSync(BUILD_DIR)) fs.rmSync(BUILD_DIR, { recursive: true });
 
-fs.readdirSync(path.join(ROOT, 'assets')).forEach(
-	f => fs.cpSync(path.join(ROOT, 'assets', f), path.join(ROOT, 'build', f), { recursive: true })
-)
+fs.mkdirSync(BUILD_DIR);
+mkdir(path.join(BUILD_DIR, 'libs'));
 
-const minified = luamin.minify(script)
+fs.readdirSync(path.join(ROOT, 'assets')).forEach((f) =>
+	fs.cpSync(path.join(ROOT, 'assets', f), path.join(BUILD_DIR, f), { recursive: true })
+);
 
-fs.writeFileSync(path.join(ROOT, 'build', 'cow.lua'), header + minified)
+function minify_script(p, header) {
+	const minified = luamin.minify(fs.readFileSync(path.join(ROOT, 'src/', p), 'utf-8'));
+	fs.writeFileSync(path.join(BUILD_DIR, p), header + minified);
+}
+
+minify_script(
+	'libs/GNanim.lua',
+	`-- GNanim.lua
+-- By: GNamimates\n`
+);
+
+minify_script(
+	'libs/TimerAPI.lua',
+	`-- TimerAPI.lua
+	-- By: KitCat962 + GNamimates\n`
+);
+
+minify_script(
+	'cow.lua',
+	`-- Figura - Cow Model v1.4
+-- Requires: rc12+
+-- Authors:
+-- + Jaezmien Naejara
+-- + winterClover - Based the model on their Customized Pony Models v2
+-- + Rels / Atsuya#7987 - Added armor support
+-- Want the un-minified version? Check it out at https://github.com/Jaezmien/figura-cow-avatar\n\n`
+);
