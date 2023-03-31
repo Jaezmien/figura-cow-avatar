@@ -37,7 +37,7 @@ minify_script(
 
 minify_script(
 	'cow.lua',
-	`-- Figura - Cow Model v1.4.1
+	`-- Figura - Cow Model v1.4.2
 -- Requires: rc12+
 -- Authors:
 -- + Jaezmien Naejara

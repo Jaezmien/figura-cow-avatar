@@ -35,7 +35,7 @@ function pings.attack()
 	States.Attack:setState(player:isLeftHanded() and anim_model.Interact_Left or anim_model.Interact_Right, true)
 end
 
-Keys.attack.onPress = function() if not action_wheel:isEnabled() then pings.attack() end end
+Keys.attack:setOnPress(function() if not action_wheel:isEnabled() then pings.attack() end end)
 
 function pings.interact()
 	local plr, air = player, "minecraft:air"
@@ -49,7 +49,7 @@ function pings.interact()
 		states_attack:setState(plr:isLeftHanded() and anim_model.Interact_Left or anim_model.Interact_Right, true)
     end
 end
-Keys.interact.onPress = function() pings.interact() end
+Keys.interact:setOnPress(function() pings.interact() end)
 
 local is_legs_busy = false
 local btn_dance = main_page:newAction(2)
